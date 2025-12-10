@@ -1,0 +1,141 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #F0F8FF;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+h1, h2, h3 {
+    font-family: 'Georgia', serif;
+    color: #0d0d0d; 
+    text-align: center;
+    padding-top: 20px;
+}
+
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 5px;
+}
+
+.intro-block {
+    background-color: whitesmoke; 
+    padding: 60px;
+    margin-top: 60px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-right: 5px solid #2837a7;
+}
+
+.intro-block-2{
+    background-color: whitesmoke; 
+   padding: 10px;
+    margin-top: 60px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-right: 5px solid #2837a7;
+}
+.skills-block {
+    background-color: #e9ecef;
+    padding: 25px;
+    margin-bottom: 20px;
+     border-radius: 10px;
+    border-left: 5px solid #2837a7;
+}
+
+.skills-block-2 {
+    background-color: #e9ecef;
+    padding: 5px;
+    margin-top: 5px;
+    margin-bottom: 20px;
+     border-radius: 10px;
+    border-left: 5px solid #2837a7;
+}
+
+
+.footer-block {
+    font-size: 0.8em;
+    opacity: 0.7; 
+    margin-top: 5px; 
+    margin: 5px 0;
+    font-style: italic;
+    text-align: center;
+}
+
+p {
+    margin-bottom: 1em;
+}
+
+a {
+    color: #0e0e0e;
+    text-decoration: none;
+}
+
+.video-block {
+    padding: 20px;
+    margin-top: 0px;
+    text-align: center; 
+    margin-bottom: 20px;
+}
+
+.video-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+
+.back-to-top{
+    position: relative;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 0;
+    margin: 0;
+
+}
+.back-to-top a {
+    display: block;
+    color: #fffefe; 
+    background-color: #537eac; 
+    padding: 10px 15px;
+    border-radius: 5px; 
+    text-decoration: none;
+    font-size: 0.9em;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); 
+    transition: background-color 0.3s;
+    text-align: center;
+}
+
+.back-to-top a:hover {
+    background-color: #0056b3; 
+}
+
+
+.image-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+
+.image-row img {
+    width: 33%;
+    height: auto;
+    object-fit: cover;
+    margin: 0 10px;
+    border: 3px solid #2a169e;
+    border-radius: 8px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+}
+.image-row img:hover {
+    transform: scale(1.05);
+}

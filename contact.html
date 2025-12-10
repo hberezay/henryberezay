@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Game - AI</title>
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+
+<style>
+        /* General Body Styling */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #91b4f0; /* Light cyan for snowy sky */
+            color: #333;
+        }
+
+        /* Game Area/Ski Course */
+        #gameArea {
+            width: 400px;
+            height: 600px;
+            background-color: #ffffff; /* White snow */
+            border: 8px solid #b0c4de; /* Icy border */
+            overflow: hidden;
+            position: relative; /* Crucial for positioning game elements */
+            margin-top: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Skier Element */
+        #skier {
+    width: 30px;
+    height: 30px;
+    /* --- CHANGES START HERE --- */
+    background-color: transparent; /* Remove solid background */
+    border-radius: 0; /* Remove circular shape */
+    font-size: 30px; /* Make the emoji visible and sized correctly */
+    line-height: 1; /* Helps vertically center the emoji */
+    text-align: center;
+    /* --- CHANGES END HERE --- */
+    
+    position: absolute;
+    bottom: 10px;
+    transition: left 0.05s linear;
+        }
+
+        /* Gate Elements */
+        .gate {
+            position: absolute;
+            background-color: transparent; /* Parent container is invisible */
+            top: -40px;
+            width: 100px; /* Width between poles */
+            height: 40px; /* Height of the gate area */
+        }
+        
+        .pole {
+            width: 5px;
+            height: 40px;
+            background-color: #00008b; /* Dark blue poles */
+            position: absolute;
+        }
+        
+        .gate .left-pole { left: 0; }
+        .gate .right-pole { right: 0; }
+
+        /* HUD and Score */
+        #hud {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 1.2em;
+        }
+
+        /* Game Over Screen */
+        #gameOver {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 10;
+        }
+        
+        #gameOver button {
+            padding: 10px 20px;
+            margin-top: 20px;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+    </style>
+
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="index.html">Game</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Resume</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Game</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+     
+     <br><br><br>                   
+                    
+
+<h1>Alpine Ski Challenge</h1>
+    <div id="hud">
+        Time: <span id="timeDisplay">0.00</span>s | Gates Passed: <span id="scoreDisplay">0</span>
+    </div>
+
+    <div id="gameArea">
+        <div id="skier">⛷️</div>
+        
+        <div id="gameOver">
+            <h2>GAME OVER! X </h2>
+            <p>You missed a gate!</p>
+            <p>Final Time: <span id="finalTime">0.00</span>s</p>
+            <p>Gates Cleared: <span id="finalScore">0</span></p>
+            <button onclick="window.location.reload()">Retry Run</button>
+        </div>
+    </div>
+
+    <script>
+        const gameArea = document.getElementById('gameArea');
+        const skier = document.getElementById('skier');
+        const gameOverScreen = document.getElementById('gameOver');
+        const timeDisplay = document.getElementById('timeDisplay');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+
+        const GAME_WIDTH = 400;
+        const SKIER_SIZE = 30;
+        const GATE_SPEED = 3; // Vertical speed of the course
+        const SKIER_STEP = 15; // Horizontal movement speed
+        const GATE_GEN_RATE = 1500; // Generate gate every 1.5 seconds
+
+        let skierX = (GAME_WIDTH / 2) - (SKIER_SIZE / 2);
+        let score = 0;
+        let isGameOver = false;
+        let startTime;
+
+        // --- GAME INITIALIZATION & LOOP ---
+
+        function startGame() {
+            startTime = Date.now();
+            skier.style.left = skierX + 'px'; // Set initial position
+            
+            // Loop for moving gates and checking collisions
+            setInterval(updateGame, 20); // Runs every 20ms
+            
+            // Loop for generating new gates
+            setInterval(generateGate, GATE_GEN_RATE);
+        }
+
+        function updateGame() {
+            if (isGameOver) return;
+            
+            updateTime();
+            
+            const gates = document.querySelectorAll('.gate');
+            gates.forEach(gate => {
+                let currentTop = parseInt(gate.style.top) || 0;
+                
+                // 1. Move the gate down
+                gate.style.top = (currentTop + GATE_SPEED) + 'px';
+                
+                // 2. Check for collision
+                checkCollision(gate);
+
+                // 3. Remove gate when it goes off-screen
+                if (currentTop > 600) {
+                    gate.remove();
+                }
+            });
+        }
+
+        function updateTime() {
+            const elapsedTime = (Date.now() - startTime) / 1000;
+            timeDisplay.textContent = elapsedTime.toFixed(2);
+            document.getElementById('finalTime').textContent = elapsedTime.toFixed(2);
+        }
+
+        // --- MOVEMENT ---
+
+        function handleKeyDown(event) {
+            if (isGameOver) return;
+
+            if (event.key === 'ArrowLeft') {
+                skierX = Math.max(0, skierX - SKIER_STEP);
+            } else if (event.key === 'ArrowRight') {
+                skierX = Math.min(GAME_WIDTH - SKIER_SIZE, skierX + SKIER_STEP);
+            }
+            skier.style.left = skierX + 'px';
+        }
+        
+        document.addEventListener('keydown', handleKeyDown);
+
+        // --- GATE LOGIC ---
+
+        function generateGate() {
+            const GATE_SEPARATION = 100; // Fixed opening width
+            const GATE_SPACING = 30; // Min space from the edge
+
+            // Random center position for the opening, ensuring it stays within the bounds
+            const maxCenter = GAME_WIDTH - GATE_SPACING - (GATE_SEPARATION / 2);
+            const minCenter = GATE_SPACING + (GATE_SEPARATION / 2);
+            const center = Math.random() * (maxCenter - minCenter) + minCenter;
+
+            // Calculate pole positions
+            const leftPoleX = center - (GATE_SEPARATION / 2);
+            const rightPoleX = center + (GATE_SEPARATION / 2);
+
+            // Create the invisible gate container (for collision checking)
+            const gate = document.createElement('div');
+            gate.className = 'gate';
+            gate.style.left = (leftPoleX - 5) + 'px'; // Position the container based on the left pole
+            gate.style.width = (rightPoleX - leftPoleX + 5) + 'px'; 
+            
+            // Create the visible poles
+            const leftPole = document.createElement('div');
+            leftPole.className = 'pole left-pole';
+
+            const rightPole = document.createElement('div');
+            rightPole.className = 'pole right-pole';
+            
+            gate.appendChild(leftPole);
+            gate.appendChild(rightPole);
+            gameArea.appendChild(gate);
+        }
+
+        // --- COLLISION & SCORING ---
+
+        // --- COLLISION & SCORING (UPDATED) ---
+
+function checkCollision(gate) {
+    const skierRect = skier.getBoundingClientRect();
+    const gateRect = gate.getBoundingClientRect();
+    
+    // Only check for gates that are near the skier's vertical position
+    if (skierRect.bottom > gateRect.top && skierRect.top < gateRect.bottom) {
+        
+        const leftPole = gate.querySelector('.left-pole');
+        const rightPole = gate.querySelector('.right-pole');
+        const leftPoleRect = leftPole.getBoundingClientRect();
+        const rightPoleRect = rightPole.getBoundingClientRect();
+
+        // 1. Check for COLLISION (Hitting a Pole)
+        let hitPole = false;
+        
+        // Collision check against the LEFT pole
+        if (skierRect.right > leftPoleRect.left && skierRect.left < leftPoleRect.right) {
+            hitPole = true;
+        }
+        
+        // Collision check against the RIGHT pole
+        if (skierRect.right > rightPoleRect.left && skierRect.left < rightPoleRect.right) {
+            hitPole = true;
+        }
+
+        if (hitPole) {
+            endGame("hit");
+            return; // Stop further checks if a collision occurred
+        }
+
+        // 2. Check for MISSING the Gate (Passing outside the course boundaries)
+        // Check if the skier is vertically aligned with the gate
+        const skierBottomY = skier.offsetTop + SKIER_SIZE;
+        const gateBottomY = gate.offsetTop + 40; // 40px is the gate height
+        
+        // Use a flag to ensure this check only runs once when the skier is passing
+        if (skierBottomY > gateBottomY && !gate.missChecked) {
+            gate.missChecked = true;
+            
+            // Check if the skier's center is outside the bounds defined by the poles
+            const skierCenter = skier.offsetLeft + SKIER_SIZE / 2;
+            const leftBound = leftPole.parentElement.offsetLeft; // Start of the gate opening
+            const rightBound = rightPole.parentElement.offsetLeft + 100; // End of the gate opening (width is 100px)
+
+            // If skier is too far left (less than the left pole) OR too far right (more than the right pole)
+            if (skierCenter < leftBound || skierCenter > rightBound) {
+                 endGame("miss");
+                 return;
+            }
+        }
+        
+        // 3. Scoring: Check if skier is BELOW the gate and hasn't scored yet
+        if (skierRect.bottom > gateRect.bottom && !gate.scored) {
+            score++;
+            scoreDisplay.textContent = score;
+            document.getElementById('finalScore').textContent = score;
+            gate.scored = true; // Mark as scored so it doesn't count again
+        }
+    }
+}
+
+        function endGame() {
+            isGameOver = true;
+            gameOverScreen.style.display = 'flex';
+            document.removeEventListener('keydown', handleKeyDown);
+        }
+
+        // Start the game when the page loads
+        window.onload = startGame;
+    </script>
+
+
+
+
+
+       
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Henry Berezay 2025</div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <!-- * *                               SB Forms JS                               * *-->
+        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+    </body>
+</html>
